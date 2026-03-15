@@ -8,6 +8,7 @@ import { Match } from '../matches/entities/match.entity';
 import { Negotiation } from '../matches/entities/negotiation.entity';
 import { Booking } from '../matches/entities/booking.entity';
 import { BlackboardService } from '../agents/blackboard/blackboard.service';
+import { BlackboardGateway } from '../agents/blackboard/blackboard.gateway';
 import { BlackboardSection } from '../agents/blackboard/blackboard.types';
 
 interface SeedListing {
@@ -55,6 +56,7 @@ export class SeedService {
     @InjectRepository(Booking)
     private readonly bookingRepo: Repository<Booking>,
     private readonly blackboard: BlackboardService,
+    private readonly gateway: BlackboardGateway,
   ) {}
 
   async seed(): Promise<{ users: number; listings: number; demands: number }> {
@@ -103,6 +105,22 @@ export class SeedService {
       this.blackboard.write(BlackboardSection.ACTIVE_LISTINGS, {
         ...listing,
         user,
+      }, { silent: true });
+
+      this.gateway.emit('map:bubble-added', {
+        type: 'supply',
+        bubble: {
+          id: listing.id,
+          type: 'supply',
+          lat: listing.lat,
+          lng: listing.lng,
+          title: listing.title,
+          category: listing.category,
+          pricePence: listing.pricePence,
+          capacity: listing.capacity,
+          booked: listing.booked || 0,
+          userId: user.id,
+        },
       });
     }
 
@@ -136,7 +154,7 @@ export class SeedService {
       this.blackboard.write(BlackboardSection.DEMAND_SIGNALS, {
         ...signal,
         user,
-      });
+      }, { silent: true });
     }
 
     this.logger.log(
@@ -152,12 +170,12 @@ export class SeedService {
 
   async reset(): Promise<void> {
     this.logger.log('Resetting database...');
-    await this.bookingRepo.delete({});
-    await this.negotiationRepo.delete({});
-    await this.matchRepo.delete({});
-    await this.demandRepo.delete({});
-    await this.listingRepo.delete({});
-    await this.userRepo.delete({});
+    await this.bookingRepo.createQueryBuilder().delete().execute();
+    await this.negotiationRepo.createQueryBuilder().delete().execute();
+    await this.matchRepo.createQueryBuilder().delete().execute();
+    await this.demandRepo.createQueryBuilder().delete().execute();
+    await this.listingRepo.createQueryBuilder().delete().execute();
+    await this.userRepo.createQueryBuilder().delete().execute();
     this.blackboard.clearAll();
     this.logger.log('Database reset complete');
   }

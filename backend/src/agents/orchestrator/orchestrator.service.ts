@@ -13,6 +13,8 @@ import { BlackboardGateway } from '../blackboard/blackboard.gateway';
 @Injectable()
 export class OrchestratorService {
   private readonly logger = new Logger(OrchestratorService.name);
+  private negotiationQueue: any[] = [];
+  private isNegotiating = false;
 
   constructor(
     @Inject(forwardRef(() => ScoutService))
@@ -144,16 +146,34 @@ export class OrchestratorService {
 
   private async onHighConfidenceMatch(match: any): Promise<void> {
     this.logger.log(
-      `Starting negotiation for match: ${match.id} (confidence: ${match.confidence})`,
+      `Queueing negotiation for match: ${match.id} (confidence: ${match.confidence})`,
     );
     this.gateway.emit('agent:matchmaker-found', {
       matchId: match.id,
       buyerId: match.demand?.userId,
       sellerId: match.listing?.userId,
     });
-    this.negotiator.runNegotiation(match).catch((err) => {
+    this.negotiationQueue.push(match);
+    this.processNegotiationQueue();
+  }
+
+  private async processNegotiationQueue(): Promise<void> {
+    if (this.isNegotiating || this.negotiationQueue.length === 0) return;
+
+    this.isNegotiating = true;
+    const match = this.negotiationQueue.shift();
+
+    try {
+      this.logger.log(
+        `Starting negotiation for match: ${match.id} (confidence: ${match.confidence})`,
+      );
+      await this.negotiator.runNegotiation(match);
+    } catch (err) {
       this.logger.error('Negotiation failed', err);
-    });
+    } finally {
+      this.isNegotiating = false;
+      this.processNegotiationQueue();
+    }
   }
 
   private async onBookingConfirmed(booking: any): Promise<void> {

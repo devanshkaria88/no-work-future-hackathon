@@ -35,7 +35,7 @@ export class DemandSignal {
   @Column('int', { default: 2000 })
   radiusMeters: number;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   expiresAt: Date;
 
   @Column({ default: 'active' })

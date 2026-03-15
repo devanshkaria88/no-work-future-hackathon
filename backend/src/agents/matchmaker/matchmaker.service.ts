@@ -39,7 +39,7 @@ export class MatchmakerService {
       return;
     }
 
-    await this.findMatches([listing], demandSignals);
+    await this.findMatches([listing], demandSignals, { bestOnly: true });
   }
 
   async scanForDemand(demand: any): Promise<void> {
@@ -55,7 +55,7 @@ export class MatchmakerService {
       return;
     }
 
-    await this.findMatches(listings, [demand]);
+    await this.findMatches(listings, [demand], { bestOnly: true });
   }
 
   async forceScan(
@@ -63,13 +63,14 @@ export class MatchmakerService {
     demandSignals: DemandSignal[],
   ): Promise<Match | null> {
     this.logger.log(`Force scanning for listing: ${listing.title}`);
-    const matches = await this.findMatches([listing], demandSignals);
+    const matches = await this.findMatches([listing], demandSignals, { bestOnly: true });
     return matches.length > 0 ? matches[0] : null;
   }
 
   private async findMatches(
     listings: any[],
     demandSignals: any[],
+    options?: { bestOnly?: boolean },
   ): Promise<Match[]> {
     const inputMessage = JSON.stringify({
       listings: listings.map((l) => ({
@@ -103,8 +104,14 @@ export class MatchmakerService {
 
     const savedMatches: Match[] = [];
 
-    for (const matchResult of result.matches) {
-      if (matchResult.confidence < 0.5) continue;
+    let matchResults = result.matches.filter((m: any) => m.confidence >= 0.5);
+
+    if (options?.bestOnly && matchResults.length > 1) {
+      matchResults.sort((a: any, b: any) => b.confidence - a.confidence);
+      matchResults = [matchResults[0]];
+    }
+
+    for (const matchResult of matchResults) {
 
       const match = this.matchRepo.create({
         listingId: matchResult.listing_id,

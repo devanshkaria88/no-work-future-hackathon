@@ -25,7 +25,7 @@ export class BlackboardService {
     private readonly gateway: BlackboardGateway,
   ) {}
 
-  write(section: BlackboardSection, data: any): void {
+  write(section: BlackboardSection, data: any, options?: { silent?: boolean }): void {
     this.logger.log(`Writing to blackboard: ${section}`);
 
     switch (section) {
@@ -52,6 +52,8 @@ export class BlackboardService {
         break;
     }
 
+    if (options?.silent) return;
+
     const event: BlackboardEvent = {
       section,
       action: 'write',
@@ -59,10 +61,7 @@ export class BlackboardService {
       timestamp: new Date(),
     };
 
-    // Notify orchestrator asynchronously
     this.eventEmitter.emit('blackboard.change', event);
-
-    // Broadcast to frontend via WebSocket
     this.gateway.broadcastBlackboardChange(event);
   }
 

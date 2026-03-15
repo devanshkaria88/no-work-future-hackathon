@@ -76,8 +76,7 @@ export default function MapPage() {
     });
 
     try {
-      // First ensure data is seeded
-      await fetch(`${API_URL}/demo/seed`, { method: 'POST' }).catch(() => {});
+      await fetch(`${API_URL}/demo/reset`, { method: 'POST' }).catch(() => {});
 
       setTimeout(() => {
         addAgentActivity({

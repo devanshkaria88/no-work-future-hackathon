@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { connectSocket, disconnectSocket } from '../lib/websocket';
 import { useBoroughStore } from '../stores/borough.store';
 import type { AgentActivity } from '../lib/types';
@@ -12,13 +12,10 @@ function nextId() {
 
 export function useWebSocket() {
   const store = useBoroughStore();
-  const mounted = useRef(false);
 
   useEffect(() => {
-    if (mounted.current) return;
-    mounted.current = true;
-
     const socket = connectSocket();
+    socket.removeAllListeners();
 
     socket.on('map:bubble-added', (data: any) => {
       store.addBubble({ id: nextId(), ...data.bubble, type: data.type || 'supply' });
@@ -152,8 +149,8 @@ export function useWebSocket() {
     });
 
     return () => {
+      socket.removeAllListeners();
       disconnectSocket();
-      mounted.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -53,7 +53,7 @@ export class Listing {
   @Column('simple-json', { nullable: true })
   included: string[];
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   timeSlot: Date;
 
   @Column({ default: 'active' })

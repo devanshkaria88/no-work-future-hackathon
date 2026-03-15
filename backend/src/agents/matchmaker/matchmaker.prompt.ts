@@ -48,6 +48,7 @@ Respond with ONLY valid JSON, no preamble, no markdown:
   - 0.5-0.69 = Stretch, only if nothing better
   - <0.5 = Don't match
 - Only set trigger_negotiation = true if confidence > 0.8.
-- Return a maximum of 3 matches, ranked by confidence.
+- Return ONLY the single best match (highest confidence). Do NOT return multiple matches.
 - Also return unmatched_demand for demand signals with no good listings (this helps the Scout identify gaps).
+- Keep the unmatched_demand list brief — just the demand_id and a short reason.
 - Output ONLY valid JSON. No markdown. No explanation outside the JSON.`;
