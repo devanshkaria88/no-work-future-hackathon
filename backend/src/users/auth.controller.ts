@@ -13,6 +13,9 @@ export class AuthController {
       email: string;
       password: string;
       name: string;
+      locationArea?: string;
+      lat?: number;
+      lng?: number;
     },
   ) {
     if (!body.email || !body.password || !body.name) {
@@ -33,9 +36,9 @@ export class AuthController {
       email: body.email,
       passwordHash,
       name: body.name,
-      locationArea: 'Shoreditch, E2',
-      lat: 51.5235,
-      lng: -0.0735,
+      locationArea: body.locationArea || 'Shoreditch, E2',
+      lat: body.lat ?? 51.5235,
+      lng: body.lng ?? -0.0735,
       skills: [],
       status: 'exploring',
     });
