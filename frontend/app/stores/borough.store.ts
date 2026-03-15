@@ -34,6 +34,12 @@ interface BoroughState {
   setSelectedBubble: (bubble: MapBubble | null) => void;
   isDealDialogOpen: boolean;
   setDealDialogOpen: (open: boolean) => void;
+
+  voiceStatus: 'idle' | 'connecting' | 'connected' | 'error';
+  setVoiceStatus: (status: 'idle' | 'connecting' | 'connected' | 'error') => void;
+  voiceTranscript: Array<{ role: 'user' | 'agent'; text: string }>;
+  addVoiceTranscript: (entry: { role: 'user' | 'agent'; text: string }) => void;
+  clearVoiceTranscript: () => void;
 }
 
 export const useBoroughStore = create<BoroughState>((set) => ({
@@ -98,4 +104,11 @@ export const useBoroughStore = create<BoroughState>((set) => ({
   setSelectedBubble: (bubble) => set({ selectedBubble: bubble }),
   isDealDialogOpen: false,
   setDealDialogOpen: (open) => set({ isDealDialogOpen: open }),
+
+  voiceStatus: 'idle',
+  setVoiceStatus: (status) => set({ voiceStatus: status }),
+  voiceTranscript: [],
+  addVoiceTranscript: (entry) =>
+    set((state) => ({ voiceTranscript: [...state.voiceTranscript, entry] })),
+  clearVoiceTranscript: () => set({ voiceTranscript: [] }),
 }));
